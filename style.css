@@ -1,0 +1,25 @@
+body {
+  font-family: Arial;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+}
+
+#data-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.card {
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #f9f9f9;
+}
+
+#loader {
+  display: none;
+  font-size: 20px;
+  margin: 20px;
+}
