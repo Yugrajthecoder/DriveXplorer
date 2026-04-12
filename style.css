@@ -61,14 +61,14 @@ button {
   --card-radius:12px;
 }
 
-/* center page content and constrain width */
+
 body{
   max-width: var(--max-width);
   margin: 0 auto;
-  text-align: left; /* make content left-aligned for readability */
+  text-align: left;
 }
 
-/* Topbar tweaks */
+
 .topbar{
   padding: 12px 0;
   border-bottom: 1px solid rgba(0,0,0,0.06);
@@ -86,7 +86,7 @@ body{
   align-items: center;
 }
 
-/* Controls layout */
+
 .controls{
   display: flex;
   gap: var(--gap);
@@ -106,7 +106,7 @@ input, select, button{
   box-sizing: border-box;
 }
 
-/* Data grid improvements */
+
 #data-container{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -145,21 +145,21 @@ input, select, button{
   min-height: 48px;
 }
 
-/* Loader centered */
+
 #loader{
   display: none;
   text-align: center;
   margin: 18px 0;
 }
 
-/* Menu appearance */
+
 .menu-item{
   display: inline-block;
   padding: 6px 10px;
   border-radius: 6px;
 }
 
-/* Dark mode tweaks */
+
 .dark{
   background-color: #0f0f0f;
   color: #eaeaea;
@@ -170,7 +170,7 @@ input, select, button{
   box-shadow: 0 6px 18px rgba(0,0,0,0.35);
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 800px){
   .controls > *{ flex: 1 1 140px; }
   .make-image{ height: 140px; }

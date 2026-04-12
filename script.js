@@ -40,20 +40,17 @@ function displayData(data) {
   container.innerHTML = '';
 
   data.slice(0, 20).forEach(item => {
-    // normalize fields from different endpoints
+
     const name = item.Make_Name || item.MakeName || item.Mfr_CommonName || item.ManufacturerName || item.Mfr_Name || item.Make || item.Manufacturer || 'Unknown';
     const id = item.Make_ID || item.MakeId || item.Mfr_ID || item.ManufacturerId || 0;
 
     const div = document.createElement('div');
     div.className = 'card';
 
-    // image element
+
     const img = document.createElement('img');
     img.className = 'make-image';
     img.alt = name;
-
-    // try to use Wikipedia thumbnail first via REST API (CORS allowed)
-    // fallback to a seeded picsum image; final fallback to placeholder
     img.src = `https://picsum.photos/seed/${encodeURIComponent(name)}/300/200`;
     img.onerror = () => {
       img.onerror = null;
@@ -81,8 +78,6 @@ function displayData(data) {
     div.appendChild(btn);
 
     container.appendChild(div);
-
-    // fetch wikipedia summary and thumbnail
     (async () => {
       try {
         const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
@@ -157,20 +152,16 @@ function toggleFavorite(item) {
 }
 
 showFavBtn.addEventListener('click', () => {
-  // show favorites list
   if (favorites.length === 0) {
     alert('No favorites yet');
     return;
   }
-  // display only favorite items (by name match)
   const favNames = new Set(favorites.map(f => f.name));
   const favItems = allData.filter(item => favNames.has(item.Make_Name || item.MakeName || item.Mfr_CommonName || item.ManufacturerName || item.Mfr_Name || item.Make || item.Manufacturer));
   displayData(favItems);
 });
 
-// update likeItem to toggle favorites
 function likeItem(name) {
-  // find the item in allData
   const item = allData.find(i => (i.Make_Name || i.MakeName || i.Mfr_CommonName || i.ManufacturerName || i.Mfr_Name || i.Make || i.Manufacturer) === name);
   if (item) {
     toggleFavorite(item);
@@ -180,7 +171,6 @@ function likeItem(name) {
   }
 }
 
-// initialize badge
 updateFavBadge();
 
 
