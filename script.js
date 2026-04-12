@@ -6,8 +6,15 @@ const sortSelect = document.getElementById("sort");
 const filterBtn = document.getElementById("filterBtn");
 const themeToggle = document.getElementById("themeToggle");
 
+const menuBtn = document.getElementById('menuBtn');
+const menu = document.getElementById('menu');
+
 let allData = [];
 let currentData = [];
+
+let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+const showFavBtn = document.getElementById('showFavBtn');
 
 
 async function fetchData() {
@@ -30,19 +37,68 @@ async function fetchData() {
 
 
 function displayData(data) {
-  container.innerHTML = "";
+  container.innerHTML = '';
 
-  data.slice(0, 20).map(item => {
-    const div = document.createElement("div");
-    div.className = "card";
+  data.slice(0, 20).forEach(item => {
+    // normalize fields from different endpoints
+    const name = item.Make_Name || item.MakeName || item.Mfr_CommonName || item.ManufacturerName || item.Mfr_Name || item.Make || item.Manufacturer || 'Unknown';
+    const id = item.Make_ID || item.MakeId || item.Mfr_ID || item.ManufacturerId || 0;
 
-    div.innerHTML = `
-      <h3>${item.Make_Name}</h3>
-      <p>ID: ${item.Make_ID}</p>
-      <button onclick="likeItem('${item.Make_Name}')">❤️ Like</button>
-    `;
+    const div = document.createElement('div');
+    div.className = 'card';
+
+    // image element
+    const img = document.createElement('img');
+    img.className = 'make-image';
+    img.alt = name;
+
+    // try to use Wikipedia thumbnail first via REST API (CORS allowed)
+    // fallback to a seeded picsum image; final fallback to placeholder
+    img.src = `https://picsum.photos/seed/${encodeURIComponent(name)}/300/200`;
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = `https://via.placeholder.com/300x200?text=${encodeURIComponent(name)}`;
+    };
+
+    const h3 = document.createElement('h3');
+    h3.textContent = name;
+
+    const p = document.createElement('p');
+    p.textContent = `ID: ${id}`;
+
+    const desc = document.createElement('p');
+    desc.className = 'description';
+    desc.textContent = 'Loading description...';
+
+    const btn = document.createElement('button');
+    btn.textContent = '❤️ Like';
+    btn.onclick = () => likeItem(name);
+
+    div.appendChild(img);
+    div.appendChild(h3);
+    div.appendChild(p);
+    div.appendChild(desc);
+    div.appendChild(btn);
 
     container.appendChild(div);
+
+    // fetch wikipedia summary and thumbnail
+    (async () => {
+      try {
+        const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name)}`);
+        if (wikiRes.ok) {
+          const wiki = await wikiRes.json();
+          if (wiki.extract) desc.textContent = wiki.extract;
+          if (wiki.thumbnail && wiki.thumbnail.source) {
+            img.src = wiki.thumbnail.source;
+          }
+        } else {
+          desc.textContent = 'No description found.';
+        }
+      } catch (e) {
+        desc.textContent = 'Description unavailable.';
+      }
+    })();
   });
 }
 
@@ -79,14 +135,71 @@ filterBtn.addEventListener("click", () => {
 });
 
 
-function likeItem(name) {
-  alert(name + " liked ❤️");
+function updateFavBadge() {
+  if (showFavBtn) showFavBtn.textContent = `Favorites (${favorites.length})`;
 }
+
+function saveFavorites() {
+  localStorage.setItem('favorites', JSON.stringify(favorites));
+  updateFavBadge();
+}
+
+function toggleFavorite(item) {
+  const name = item.Make_Name || item.MakeName || item.Mfr_CommonName || item.ManufacturerName || item.Mfr_Name || item.Make || item.Manufacturer || 'Unknown';
+  const id = item.Make_ID || item.MakeId || item.Mfr_ID || item.ManufacturerId || 0;
+  const exists = favorites.find(f => f.id === id || f.name === name);
+  if (exists) {
+    favorites = favorites.filter(f => !(f.id === id && f.name === name));
+  } else {
+    favorites.push({ id, name });
+  }
+  saveFavorites();
+}
+
+showFavBtn.addEventListener('click', () => {
+  // show favorites list
+  if (favorites.length === 0) {
+    alert('No favorites yet');
+    return;
+  }
+  // display only favorite items (by name match)
+  const favNames = new Set(favorites.map(f => f.name));
+  const favItems = allData.filter(item => favNames.has(item.Make_Name || item.MakeName || item.Mfr_CommonName || item.ManufacturerName || item.Mfr_Name || item.Make || item.Manufacturer));
+  displayData(favItems);
+});
+
+// update likeItem to toggle favorites
+function likeItem(name) {
+  // find the item in allData
+  const item = allData.find(i => (i.Make_Name || i.MakeName || i.Mfr_CommonName || i.ManufacturerName || i.Mfr_Name || i.Make || i.Manufacturer) === name);
+  if (item) {
+    toggleFavorite(item);
+    alert(name + (favorites.find(f => f.name === name) ? ' added to favorites ❤️' : ' removed from favorites'));
+  } else {
+    alert(name + ' liked ❤️');
+  }
+}
+
+// initialize badge
+updateFavBadge();
 
 
 themeToggle.addEventListener("click", () => {
   document.body.classList.toggle("dark");
 });
+
+
+if (menuBtn) {
+  menuBtn.addEventListener('click', () => {
+    if (menu.classList.contains('hidden')) {
+      menu.classList.remove('hidden');
+      menu.setAttribute('aria-hidden', 'false');
+    } else {
+      menu.classList.add('hidden');
+      menu.setAttribute('aria-hidden', 'true');
+    }
+  });
+}
 
 
 fetchData();
